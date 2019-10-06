@@ -1,7 +1,10 @@
+/* eslint-disable react/jsx-boolean-value */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { WebView } from 'react-native-webview';
 import { ActivityIndicator } from 'react-native';
+
+import { Loading } from './style';
 
 export default class Repo extends Component {
   static navigationOptions = ({ navigation }) => ({
@@ -17,11 +20,8 @@ export default class Repo extends Component {
         <WebView
           source={{ uri: repository.html_url }}
           style={{ flex: 1 }}
-          // eslint-disable-next-line react/jsx-boolean-value
           startInLoadingState={true}
-          renderLoading={() => (
-            <ActivityIndicator size="large" style={{ flex: 1 }} />
-          )}
+          renderLoading={() => <Loading />}
         />
       </>
     );

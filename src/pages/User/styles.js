@@ -76,6 +76,8 @@ export const Author = styled.Text`
   margin-top: 2px;
 `;
 
-export const Loading = styled.ActivityIndicator`
+export const Loading = styled.ActivityIndicator.attrs({
+  size: 'large',
+})`
   flex: 1;
 `;

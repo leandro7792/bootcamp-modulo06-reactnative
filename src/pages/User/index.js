@@ -25,6 +25,7 @@ export default class User extends Component {
   state = {
     stars: [],
     page: 1,
+    endPages: false,
     loadingMore: false,
     refreshing: false,
   };
@@ -33,30 +34,43 @@ export default class User extends Component {
     this.loadMore();
   }
 
-  loadMore = async () => {
-    this.setState({ loadingMore: true });
-
+  loadMore = async (refresh = false) => {
     const { navigation } = this.props;
-    const { page, stars } = this.state;
+    const { page, stars, endPages } = this.state;
+
+    if (endPages && !refresh) return;
+
+    this.setState({ loadingMore: true });
 
     const user = navigation.getParam('user');
 
-    const response = await api.get(`/users/${user.login}/starred`, {
-      params: {
-        page,
-      },
-    });
+    try {
+      const response = await api.get(`/users/${user.login}/starred`, {
+        params: {
+          page,
+        },
+      });
 
-    this.setState({
-      stars: [...stars, ...response.data],
-      page: page + 1,
-      loadingMore: false,
-    });
+      if (response.data.length) {
+        this.setState({
+          stars: [...stars, ...response.data],
+          page: page + 1,
+          loadingMore: false,
+        });
+      } else {
+        this.setState({
+          endPages: true,
+          loadingMore: false,
+        });
+      }
+    } catch (error) {
+      console.tron.log(error);
+    }
   };
 
   refreshList = async () => {
     await this.setState({ page: 1, stars: [] });
-    this.loadMore();
+    this.loadMore(true);
   };
 
   handleNavigate = repo => {
@@ -67,7 +81,7 @@ export default class User extends Component {
 
   render() {
     const { navigation } = this.props;
-    const { stars, refreshing, loadingMore } = this.state;
+    const { stars, refreshing, loadingMore, endPages } = this.state;
     const user = navigation.getParam('user');
 
     return (
@@ -82,7 +96,7 @@ export default class User extends Component {
           <>
             <Stars
               onEndReachedThreshold={0.2} // Carrega mais itens quando chegar em 20% do fim
-              onEndReached={this.loadMore} // Função que carrega mais itens
+              onEndReached={!endPages && this.loadMore} // Função que carrega mais itens
               onRefresh={this.refreshList} // Função dispara quando o usuário arrasta a lista pra baixo
               refreshing={refreshing} // Variável que armazena um estado true/false que representa se a lista está atualizando
               data={stars}
@@ -104,7 +118,7 @@ export default class User extends Component {
             )}
           </>
         ) : (
-          <Loading size="large" />
+          <Loading />
         )}
       </Container>
     );
